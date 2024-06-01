@@ -33,3 +33,4 @@ cart.add_to_cart(book2)
 
 # Display Cart
 cart.display_cart()
+print("Hello world")
