@@ -19,7 +19,6 @@ class ShoppingCart:
             for item in self.items:
                 if item.title == book.title:
                     item.quantity += book.quantity
-                    item.price += book.price * book.quantity
                     print(f"Quantity of {book.title} updated in cart.")
                     break
             else:
@@ -28,11 +27,17 @@ class ShoppingCart:
         else:
             print("Sorry, book not available.")
 
-    def remove_from_cart(self, title):
+    def remove_from_cart(self, title, remove_quantity):
         for item in self.items:
             if item.title == title:
-                self.items.remove(item)
-                print(f"{title} removed from cart.")
+                if item.quantity > remove_quantity:
+                    item.quantity -= remove_quantity
+                    print(f"Quantity of {title} reduced by {remove_quantity} in cart.")
+                elif item.quantity == remove_quantity:
+                    self.items.remove(item)
+                    print(f"{title} removed from cart.")
+                else:
+                    print(f"Cannot remove {remove_quantity} copies of {title} from cart. Only {item.quantity} available.")
                 break
         else:
             print(f"{title} not found in cart.")
@@ -45,7 +50,7 @@ class ShoppingCart:
     def calculate_total(self):
         total = 0
         for item in self.items:
-            total += item.price
+            total += item.price * item.quantity
         return total
 
 cart = ShoppingCart()
@@ -72,8 +77,9 @@ def update_cart(title):
                 return jsonify({"message": f"Quantity of {title} updated in cart."})
         return jsonify({"message": f"{title} not found in cart."})
     elif request.method == 'DELETE':
-        cart.remove_from_cart(title)
-        return jsonify({"message": f"{title} removed from cart."})
+        remove_quantity = int(request.args.get('remove_quantity', 1))
+        cart.remove_from_cart(title, remove_quantity)
+        return jsonify({"message": f"{title} quantity updated in cart."})
 
 @app.route('/cart/total', methods=['GET'])
 def cart_total():
@@ -82,3 +88,4 @@ def cart_total():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
