@@ -14,6 +14,11 @@ class ShoppingCart:
     def __init__(self):
         self.items = []
         self.discount_code = None
+        self.gift_card_codes = {
+            "GIFT2022": 20,
+            "GIFT2023": 30,
+            "GIFT2024": 40
+        }
 
     def add_to_cart(self, book):
         if book.available:
@@ -52,9 +57,21 @@ class ShoppingCart:
         total = 0
         for item in self.items:
             total += item.price * item.quantity
+
         if self.discount_code:
-            total -= total * self.discount_code.discount_percentage
+            total -= self.discount_code.discount_percentage
+
         return total
+
+    def apply_gift_card(self, gift_card_code):
+        if gift_card_code in self.gift_card_codes:
+            discount_amount = self.gift_card_codes[gift_card_code]
+            self.discount_code = DiscountCode(gift_card_code, discount_amount)
+            print("Gift card code valid!")
+            print(f"Applied gift card code: {gift_card_code}")
+            print(f"Discount amount: ${discount_amount}")
+        else:
+            print("Invalid gift card code.")
 
 class DiscountCode:
     def __init__(self, code, discount_percentage):
@@ -109,6 +126,13 @@ def apply_discount():
             cart.discount_code = code
             return jsonify({"message": "Discount code valid!"})
     return jsonify({"message": "Invalid discount code."})
+
+@app.route('/cart/giftcard', methods=['POST'])
+def apply_gift_card():
+    data = request.get_json()
+    gift_card_code = data.get('gift_card_code')
+    cart.apply_gift_card(gift_card_code)
+    return jsonify({"message": "Gift card applied."})
 
 if __name__ == '__main__':
     app.run(debug=True)
