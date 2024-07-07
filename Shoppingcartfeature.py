@@ -53,6 +53,15 @@ class ShoppingCart:
             total += item.price * item.quantity
         return total
 
+    def apply_discount(self, discount_code):
+        if discount_code == "SUMMER2021":
+            total = self.calculate_total()
+            discount = total * 0.1  # 10% discount
+            total -= discount
+            return total
+        else:
+            return self.calculate_total()
+
 cart = ShoppingCart()
 
 @app.route('/cart', methods=['GET', 'POST'])
@@ -86,6 +95,12 @@ def cart_total():
     total = cart.calculate_total()
     return jsonify({"total": total})
 
+@app.route('/cart/discount', methods=['POST'])
+def apply_discount():
+    data = request.get_json()
+    discount_code = data.get('discount_code')
+    total = cart.apply_discount(discount_code)
+    return jsonify({"total": total})
+
 if __name__ == '__main__':
     app.run(debug=True)
-
