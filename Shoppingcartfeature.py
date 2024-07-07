@@ -13,6 +13,7 @@ class Book:
 class ShoppingCart:
     def __init__(self):
         self.items = []
+        self.discount_code = None
 
     def add_to_cart(self, book):
         if book.available:
@@ -51,16 +52,20 @@ class ShoppingCart:
         total = 0
         for item in self.items:
             total += item.price * item.quantity
+        if self.discount_code:
+            total -= total * self.discount_code.discount_percentage
         return total
 
-    def apply_discount(self, discount_code):
-        if discount_code == "SUMMER2021":
-            total = self.calculate_total()
-            discount = total * 0.1  # 10% discount
-            total -= discount
-            return total
-        else:
-            return self.calculate_total()
+class DiscountCode:
+    def __init__(self, code, discount_percentage):
+        self.code = code
+        self.discount_percentage = discount_percentage
+
+discount_codes = [
+    DiscountCode("SUMMER2021", 0.1),
+    DiscountCode("WINTER2021", 0.15),
+    DiscountCode("SPRING2022", 0.2)
+]
 
 cart = ShoppingCart()
 
@@ -99,8 +104,11 @@ def cart_total():
 def apply_discount():
     data = request.get_json()
     discount_code = data.get('discount_code')
-    total = cart.apply_discount(discount_code)
-    return jsonify({"total": total})
+    for code in discount_codes:
+        if code.code == discount_code:
+            cart.discount_code = code
+            return jsonify({"message": "Discount code valid!"})
+    return jsonify({"message": "Invalid discount code."})
 
 if __name__ == '__main__':
     app.run(debug=True)
