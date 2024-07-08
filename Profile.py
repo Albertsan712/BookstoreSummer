@@ -15,7 +15,7 @@ class User(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     homeAddress = db.Column(db.String(120), nullable=False)
 
-# GET profile info
+# GET / see profile info
 @app.route('/profile/<username>', methods=['GET'])
 def get_profile(username):
     user = User.query.filter_by(username=username).first()
@@ -46,6 +46,52 @@ def create_profile():
     db.session.add(new_user)
     db.session.commit()
     return jsonify({"message": "User created successfully."}), 201
+
+# PUT / change profile info
+@app.route('/admin/profile/<username>', methods=['PUT'])
+def update_profile(username):
+    user = User.query.filter_by(username=username).first()
+    if user:
+        data = request.get_json()
+        user.username = data.get('username', user.username)
+        user.password = data.get('password', user.password)
+        user.firstName = data.get('firstName', user.firstName)
+        user.lastName = data.get('lastName', user.lastName)
+        user.email = data.get('email', user.email)
+        user.homeAddress = data.get('homeAddress', user.homeAddress)
+        db.session.commit()
+        return jsonify({"message": "User updated successfully."}), 200
+    else:
+        return jsonify({"message": "User not found."}), 404
+    
+# Credit card
+class CreditCard(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    cardNumber = db.Column(db.String(16), unique=True, nullable=False)
+    expirationDate = db.Column(db.String(5), nullable=False)
+    cvv = db.Column(db.String(3), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+
+    user = db.relationship('User', backref=db.backref('credit_cards', lazy=True))
+
+# POST / create credit card
+@app.route('/profile/<username>/creditcard', methods=['POST'])
+def add_credit_card(username):
+    user = User.query.filter_by(username=username).first()
+    if user:
+        data = request.get_json()
+        new_card = CreditCard(
+            cardNumber = data['cardNumber'],
+            expirationDate = data['expirationDate'],
+            cvv = data['cvv'],
+            user_id = user.id
+        )
+        db.session.add(new_card)
+        db.session.commit()
+        return jsonify({"message": "Credit card added successfully."}), 201
+    else:
+        return jsonify({"message": "User not found."}), 404
+
 
 if __name__ == '__main__':
     with app.app_context():
