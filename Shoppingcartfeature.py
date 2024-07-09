@@ -14,6 +14,7 @@ class ShoppingCart:
     def __init__(self):
         self.items = []
         self.discount_code = None
+        self.gift_card_discount = 0
         self.gift_card_codes = {
             "GIFT2022": 20,
             "GIFT2023": 30,
@@ -54,19 +55,19 @@ class ShoppingCart:
             print(f"- {item.title} by {item.author} (${item.price} for {item.quantity} items)")
 
     def calculate_total(self):
-        total = 0
-        for item in self.items:
-            total += item.price * item.quantity
+        total = sum(item.price * item.quantity for item in self.items)
 
         if self.discount_code:
-            total -= self.discount_code.discount_percentage
+            total -= total * self.discount_code.discount_percentage
+
+        total -= self.gift_card_discount
 
         return total
 
     def apply_gift_card(self, gift_card_code):
         if gift_card_code in self.gift_card_codes:
             discount_amount = self.gift_card_codes[gift_card_code]
-            self.discount_code = DiscountCode(gift_card_code, discount_amount)
+            self.gift_card_discount += discount_amount
             print("Gift card code valid!")
             print(f"Applied gift card code: {gift_card_code}")
             print(f"Discount amount: ${discount_amount}")
