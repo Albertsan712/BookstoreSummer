@@ -5,4 +5,4 @@ The database we'll be using is SQL
 The Rest API will be built with Flask
 The language that we use will be Python
 and the Development IDE will be Pycharm
-Current utility: Successfully returns data upon GET calls
+Current utility: Final stages of development/limited.
