@@ -15,3 +15,4 @@ VALUES (1, 'Book A', 'Author X', 19.99, 2),
 -- Query to display the shopping cart contents
 SELECT title, author, price, quantity, (price * quantity) AS total_price
 FROM shopping_cart;
+ 
