@@ -8,7 +8,7 @@ db = SQLAlchemy()
 class Book(db.Model):
     book_id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)
-    author = db.Column(db.String(100), nullable=False)z
+    author = db.Column(db.String(100), nullable=False)
     genre = db.Column(db.String(50), nullable=False)
     price = db.Column(db.Numeric, nullable=False)
     copies_sold = db.Column(db.Integer, nullable=False)
@@ -57,7 +57,17 @@ class FlaskApp:
             Book(book_id=2, title='To Kill a Mockingbird', author='Harper Lee', genre='Fiction', price=10.50, copies_sold=800, rating=4.8, publisher='J.B. Lippincott & Co.'),
             Book(book_id=3, title='1984', author='George Orwell', genre='Dystopian', price=15.75, copies_sold=600, rating=4.6, publisher='Secker & Warburg'),
             Book(book_id=4, title='Pride and Prejudice', author='Jane Austen', genre='Romance', price=9.99, copies_sold=700, rating=4.7, publisher='T. Egerton'),
-            Book(book_id=5, title='The Catcher in the Rye', author='J.D. Salinger', genre='Coming-of-Age', price=11.25, copies_sold=750, rating=4.5, publisher='Little, Brown and Company')
+            Book(book_id=5, title='The Catcher in the Rye', author='J.D. Salinger', genre='Coming-of-Age', price=11.25, copies_sold=750, rating=4.5, publisher='Little, Brown and Company'),
+            Book(book_id=6, title='Moby Dick', author='Herman Melville', genre='Adventure', price=14.50, copies_sold=400, rating=4.1, publisher='Harper & Brothers'),
+            Book(book_id=7, title='War and Peace', author='Leo Tolstoy', genre='Historical', price=19.99, copies_sold=300, rating=4.4, publisher='The Russian Messenger'),
+            Book(book_id=8, title='Crime and Punishment', author='Fyodor Dostoevsky', genre='Psychological', price=13.75, copies_sold=450, rating=4.3, publisher='The Russian Messenger'),
+            Book(book_id=9, title='The Brothers Karamazov', author='Fyodor Dostoevsky', genre='Philosophical', price=17.50, copies_sold=350, rating=4.5, publisher='The Russian Messenger'),
+            Book(book_id=10, title='Brave New World', author='Aldous Huxley', genre='Science Fiction', price=12.00, copies_sold=550, rating=4.2, publisher='Chatto & Windus'),
+            Book(book_id=11, title='The Hobbit', author='J.R.R. Tolkien', genre='Fantasy', price=10.99, copies_sold=600, rating=4.7, publisher='George Allen & Unwin'),
+            Book(book_id=12, title='Anna Karenina', author='Leo Tolstoy', genre='Romance', price=11.50, copies_sold=400, rating=4.6, publisher='The Russian Messenger'),
+            Book(book_id=13, title='The Adventures of Huckleberry Finn', author='Mark Twain', genre='Adventure', price=9.50, copies_sold=500, rating=4.4, publisher='Chatto & Windus'),
+            Book(book_id=14, title='Jane Eyre', author='Charlotte Brontë', genre='Gothic', price=12.75, copies_sold=450, rating=4.5, publisher='Smith, Elder & Co.'),
+            Book(book_id=15, title='Wuthering Heights', author='Emily Brontë', genre='Tragedy', price=10.25, copies_sold=480, rating=4.3, publisher='Thomas Cautley Newby')
         ]
         db.session.bulk_save_objects(books)
         db.session.commit()
