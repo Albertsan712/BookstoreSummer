@@ -1,26 +1,58 @@
 from flask import Flask, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import sessionmaker
+from decimal import Decimal
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///books.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 # Define the Book model
 class Book(db.Model):
+    __tablename__ = 'books'
     book_id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(100), nullable=False)
-    author = db.Column(db.String(100), nullable=False)
+    title = db.Column(db.String(255), nullable=False)
+    author_id = db.Column(db.Integer, db.ForeignKey('authors.id'), nullable=False)
     genre = db.Column(db.String(50), nullable=False)
-    price = db.Column(db.Numeric, nullable=False)
-    copies_sold = db.Column(db.Integer, nullable=False)
+    price = db.Column(db.Numeric(10, 2), nullable=False)
+    copies_sold = db.Column(db.Integer, nullable=False, default=0)
+    rating = db.Column(db.Float, nullable=False, default=0.0)
+    publisher = db.Column(db.String(100), nullable=False)
+    year_published = db.Column(db.Integer, nullable=False)
 
-    def __init__(self, title, author, genre, price, copies_sold):
-        self.title = title
-        self.author = author
-        self.genre = genre
-        self.price = price
-        self.copies_sold = copies_sold
+    def to_dict(self):
+        return {
+            'book_id': self.book_id,
+            'title': self.title,
+            'author_id': self.author_id,
+            'genre': self.genre,
+            'price': float(self.price),
+            'copies_sold': self.copies_sold,
+            'rating': self.rating,
+            'publisher': self.publisher,
+            'year_published': self.year_published
+        }
+
+# Define the Author model
+class Author(db.Model):
+    __tablename__ = 'authors'
+    id = db.Column(db.Integer, primary_key=True)
+    first_name = db.Column(db.String, nullable=False)
+    last_name = db.Column(db.String, nullable=False)
+    biography = db.Column(db.String)
+    publisher = db.Column(db.String, nullable=False)
+    books = db.relationship('Book', backref='author', lazy=True)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'first_name': self.first_name,
+            'last_name': self.last_name,
+            'biography': self.biography,
+            'publisher': self.publisher,
+            'books': [book.to_dict() for book in self.books]
+        }
 
 # Function to create a session within the app context
 def get_session():
@@ -28,6 +60,7 @@ def get_session():
         Session = sessionmaker(bind=db.engine)
         return Session()
 
+# ShoppingCart class
 class ShoppingCart:
     def __init__(self):
         self.carts = {}
@@ -57,7 +90,7 @@ class ShoppingCart:
                 cart.append({
                     'book_id': book.book_id,
                     'title': book.title,
-                    'author': book.author,
+                    'author': book.author.first_name + " " + book.author.last_name,
                     'price': float(book.price),
                     'quantity': quantity
                 })
@@ -108,6 +141,26 @@ discount_codes = [
 ]
 
 cart = ShoppingCart()
+
+# Flask routes for managing books and authors
+@app.route('/books', methods=['GET'])
+def get_books():
+    sort_by = request.args.get('sort_by', 'title')
+    order = request.args.get('order', 'asc')
+
+    if order == 'asc':
+        books = Book.query.order_by(getattr(Book, sort_by).asc()).all()
+    else:
+        books = Book.query.order_by(getattr(Book, sort_by).desc()).all()
+
+    books_list = [book.to_dict() for book in books]
+    return jsonify(books_list)
+
+@app.route('/authors', methods=['GET'])
+def get_authors():
+    authors = Author.query.all()
+    authors_list = [author.to_dict() for author in authors]
+    return jsonify(authors_list)
 
 @app.route('/cart/total/<user_id>', methods=['GET'])
 def cart_total(user_id):
