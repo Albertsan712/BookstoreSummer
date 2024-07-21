@@ -1,7 +1,6 @@
-import os
-
-basedir = os.path.abspath(os.path.dirname(__file__))
-
-class Config:
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'app.db')
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
+# config.py
+DB_HOST = 'your_database_host'
+DB_USER = 'your_database_user'
+DB_PASSWORD = 'your_database_password'
+DB_NAME = 'your_database_name'
+userid = 'your_user_id'  # This should be dynamically set based on the logged-in user
