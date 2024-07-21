@@ -81,7 +81,7 @@ class ShoppingCart:
         cart = self.get_cart(user_id)
         Session = get_session()
         with Session() as session:
-            book = session.get(Book, book_id)
+            book = session.query(Book).get(book_id)
             if book:
                 for item in cart:
                     if item['book_id'] == book_id:
