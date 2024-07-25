@@ -34,6 +34,7 @@ API Endpoints:
 Running the App:
 1. Start the Application:
 Run this in terminal:
+python starter_books.py
 python book_browsing_and_sorting.py
 
 2. Initialize Database and Add Data: Runs on start.
