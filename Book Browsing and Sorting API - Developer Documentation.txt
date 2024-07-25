@@ -12,7 +12,7 @@ Prerequisites (recommended to check requirements.txt file):
 
 Installation:
 1. Clone and Install:
-git clone https://github.com/Albertsan712/BookstoreSummer/tree/Book-Browsing-and-Sorting
+git clone https://github.com/Albertsan712/BookstoreSummer
 cd yourrepository
 pip install Flask Flask-SQLAlchemy
 
