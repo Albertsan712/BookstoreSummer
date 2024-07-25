@@ -1,0 +1,39 @@
+Book Browsing and Sorting API
+Developer Documentation
+
+Overview:
+This is a Flask app for managing books and authors with a SQLite database. It includes endpoints for querying books by genre, top sellers, rating, and applying discounts.
+
+Setup:
+Prerequisites:
+- Python 3.x
+- Flask
+- Flask-SQLAlchemy
+
+Installation:
+1. Clone and Install:
+git clone https://github.com/Albertsan712/BookstoreSummer/tree/Book-Browsing-and-Sorting
+cd yourrepository
+pip install Flask Flask-SQLAlchemy
+
+2. Database URI:
+sqlite:///app.db
+
+Models:
+- Book: Represents books with attributes like book_id, isbn, title, author, genre, price, year_published, copies_sold, rating, and description.
+- Author: Represents authors with author_id, author, biography, and publisher.
+- BookAuthor: Manages many-to-many relationships between Book and Author.
+
+API Endpoints:
+- GET /books/genre/<genre>: Retrieve books by genre.
+- GET /books/top-sellers: Get top 10 best-selling books.
+- GET /books/rating/<float:min_rating>: Get books with rating ≥ min_rating.
+- PUT /books/discount: Apply a discount to books from a publisher. Requires JSON with discount_percent and publisher.
+
+
+Running the App:
+1. Start the Application:
+Run this in terminal:
+python book_browsing_and_sorting.py
+
+2. Initialize Database and Add Data: Runs on start.
