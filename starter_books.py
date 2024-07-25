@@ -1,4 +1,4 @@
-from shopping_cart import db, Book, Author
+from Shoppingcartfeature import db, Book, Author
 
 def add_books():
     # Authors table
@@ -52,7 +52,7 @@ def add_books():
         session.commit()
 
 if __name__ == '__main__':
-    from shopping_cart import app
+    from Shoppingcartfeature import app
     with app.app_context():
         db.create_all()
         add_books()
