@@ -5,7 +5,7 @@ Overview:
 This is a Flask app for managing books and authors with a SQLite database. It includes endpoints for querying books by genre, top sellers, rating, and applying discounts.
 
 Setup:
-Prerequisites:
+Prerequisites (recommended to check requirements.txt file):
 - Python 3.x
 - Flask
 - Flask-SQLAlchemy
