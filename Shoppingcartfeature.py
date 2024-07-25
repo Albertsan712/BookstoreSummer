@@ -1,129 +1,71 @@
 from flask import Flask, jsonify, request
+from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
+db = SQLAlchemy(app)
 
-class Book:
-    def __init__(self, book_id, title, author, price, available, quantity=1):
-        self.book_id = book_id
-        self.title = title
-        self.author = author
-        self.price = price
-        self.available = available
-        self.quantity = quantity
+class Book(db.Model):
+    book_id = db.Column(db.Integer, primary_key=True)
+    isbn = db.Column(db.String(13), unique=True, nullable=True)
+    title = db.Column(db.String(80), nullable=True)
+    author_id = db.Column(db.Integer, db.ForeignKey('author.author_id'), nullable=True)
+    author = db.Column(db.String(100), nullable=True)
+    genre = db.Column(db.String(80), nullable=True)
+    publisher = db.Column(db.String(80), nullable=True)
+    price = db.Column(db.Float, nullable=True)
+    year_published = db.Column(db.Integer, nullable=True)
+    copies_sold = db.Column(db.Integer, nullable=True)
+    rating = db.Column(db.Float, nullable=True)
+    description = db.Column(db.Text, nullable=True)
 
-class ShoppingCart:
-    def __init__(self):
-        self.items = []
-        self.discount_code = None
+class Author(db.Model):
+    author_id = db.Column(db.Integer, primary_key=True)
+    author = db.Column(db.String(100), nullable=True)
+    biography = db.Column(db.Text, nullable=True)
+    publisher = db.Column(db.String(80), nullable=True)
 
-    def add_to_cart(self, book):
-        if book.available:
-            for item in self.items:
-                if item.book_id == book.book_id:
-                    item.quantity += book.quantity
-                    print(f"Quantity of {book.title} updated in cart.")
-                    break
-            else:
-                self.items.append(book)
-                print(f"{book.title} added to cart.")
-        else:
-            print("Sorry, book not available.")
+class ShoppingCart(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, nullable=False)
+    book_id = db.Column(db.Integer, nullable=False)
 
-    def remove_from_cart(self, book_id, remove_quantity):
-        for item in self.items:
-            if item.book_id == book_id:
-                if item.quantity > remove_quantity:
-                    item.quantity -= remove_quantity
-                    print(f"Quantity of {item.title} reduced by {remove_quantity} in cart.")
-                elif item.quantity == remove_quantity:
-                    self.items.remove(item)
-                    print(f"{item.title} removed from cart.")
-                else:
-                    print(f"Cannot remove {remove_quantity} copies of {item.title} from cart. Only {item.quantity} available.")
-                break
-        else:
-            print(f"Book ID {book_id} not found in cart.")
+# GET / see subtotal of user's cart
+@app.route('/cart/<int:user_id>/subtotal', methods=['GET'])
+def get_cart_subtotal(user_id):
+    cart_items = ShoppingCart.query.filter_by(user_id=user_id).all()
+    subtotal = sum(Book.query.get(item.book_id).price for item in cart_items)
+    return jsonify({"subtotal": subtotal}), 200
 
-    def display_cart(self):
-        print("Shopping Cart:")
-        for item in self.items:
-            print(f"- {item.title} by {item.author} (${item.price} for {item.quantity} items)")
+# POST / add books to user's cart
+@app.route('/cart/<int:book_id>/<int:user_id>', methods=['POST'])
+def add_to_cart(book_id, user_id):
+    new_item = ShoppingCart(user_id=user_id, book_id=book_id)
+    db.session.add(new_item)
+    db.session.commit()
+    book_title = Book.query.get(book_id).title
+    return jsonify({"message": f"{book_title} was added to the cart."}), 201
 
-    def calculate_total(self):
-        total = 0
-        for item in self.items:
-            total += item.price * item.quantity
-        if self.discount_code:
-            total -= total * self.discount_code.discount_percentage
-        return total
+# GET / see user's cart
+@app.route('/cart/<int:user_id>', methods=['GET'])
+def get_cart(user_id):
+    cart_items = ShoppingCart.query.filter_by(user_id=user_id).all()
+    books = [Book.query.get(item.book_id).title for item in cart_items]
+    return jsonify(books), 200
 
-class DiscountCode:
-    def __init__(self, code, discount_percentage):
-        self.code = code
-        self.discount_percentage = discount_percentage
-
-discount_codes = [
-    DiscountCode("SUMMER2021", 0.1),
-    DiscountCode("WINTER2021", 0.15),
-    DiscountCode("SPRING2022", 0.2)
-]
-
-carts = {}
-
-@app.route('/cart/<username>', methods=['GET', 'POST'])
-def shopping_cart(username):
-    if username not in carts:
-        carts[username] = ShoppingCart()
-
-    if request.method == 'GET':
-        return jsonify([{"book_id": item.book_id, "title": item.title, "author": item.author, "price": item.price, "quantity": item.quantity} for item in carts[username].items])
-    elif request.method == 'POST':
-        data = request.get_json()
-        new_book = Book(data['book_id'], data['title'], data['author'], data['price'], data['available'], data.get('quantity', 1))
-        carts[username].add_to_cart(new_book)
-        return jsonify({"message": "Book added to cart."})
-
-@app.route('/cart/<username>/<book_id>', methods=['PUT', 'DELETE'])
-def update_cart(username, book_id):
-    if username not in carts:
-        return jsonify({"message": "User does not have a cart."})
-
-    book_id = int(book_id)
-
-    if request.method == 'PUT':
-        data = request.get_json()
-        for item in carts[username].items:
-            if item.book_id == book_id:
-                item.available = data.get('available', item.available)
-                item.price = data.get('price', item.price)
-                item.quantity = data.get('quantity', item.quantity)
-                return jsonify({"message": f"Quantity of {item.title} updated in cart."})
-        return jsonify({"message": f"Book ID {book_id} not found in cart."})
-    elif request.method == 'DELETE':
-        remove_quantity = int(request.args.get('remove_quantity', 1))
-        carts[username].remove_from_cart(book_id, remove_quantity)
-        return jsonify({"message": f"Book ID {book_id} quantity updated in cart."})
-
-@app.route('/cart/<username>/total', methods=['GET'])
-def cart_total(username):
-    if username not in carts:
-        return jsonify({"message": "User does not have a cart."})
-
-    total = carts[username].calculate_total()
-    return jsonify({"total": total})
-
-@app.route('/cart/<username>/discount', methods=['POST'])
-def apply_discount(username):
-    if username not in carts:
-        return jsonify({"message": "User does not have a cart."})
-
-    data = request.get_json()
-    discount_code = data.get('discount_code')
-    for code in discount_codes:
-        if code.code == discount_code:
-            carts[username].discount_code = code
-            return jsonify({"message": "Discount code valid!"})
-    return jsonify({"message": "Invalid discount code."})
+# DELETE / remove book from user's cart
+@app.route('/cart/remove/<int:book_id>/<int:user_id>', methods=['DELETE'])
+def remove_from_cart(book_id, user_id):
+    item = ShoppingCart.query.filter_by(user_id=user_id, book_id=book_id).first()
+    if item:
+        db.session.delete(item)
+        db.session.commit()
+        book_title = Book.query.get(book_id).title
+        return jsonify({"message": f"{book_title} was removed from the cart."}), 200
+    else:
+        return jsonify({"message": "Book not found in cart."}), 404
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    with app.app_context():
+        db.create_all()
+    app.run(debug=True, port=8000)
