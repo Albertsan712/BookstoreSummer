@@ -10,5 +10,7 @@ Current utility: Fully functional
 After git cloning this repo and installing requirements do this:
 1. Start the Application:
 Run this in terminal:
+
 python starter_books.py
+
 python (file name of desired feature)
